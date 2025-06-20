@@ -26,7 +26,13 @@
       color: #cfd8dc;
       max-width: 100%;
     }
+    canvas {
+      background: #222;
+      padding: 1rem;
+      margin-top: 1rem;
+    }
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
   <h1>📈 AI Trading Assistant</h1>
@@ -55,8 +61,11 @@
 
   <h2 id="signal-result"></h2>
   <pre id="response-box"></pre>
+  <canvas id="priceChart" width="600" height="300"></canvas>
 
   <script>
+    let chart;
+
     async function getSignal() {
       const ticker = document.getElementById("ticker").value;
       const risk = document.getElementById("risk").value;
@@ -74,8 +83,10 @@
           `Signal: <span class="${signal}">${signal.toUpperCase()}</span> @ $${data.summary.entry_price}<br/>
            Confidence: ${data.summary.confidence} | Accuracy: ${data.summary.accuracy}<br/>
            Shares: ${data.summary.shares}`;
+
         document.getElementById("response-box").innerText = JSON.stringify(data, null, 2);
         saveHistory(data);
+        drawChart(data.timeseries, data.summary.entry_price);
       } else {
         document.getElementById("signal-result").innerText = "Error: " + (data.error || "Invalid response");
       }
@@ -86,6 +97,51 @@
       history.unshift({ date: new Date().toLocaleString(), ...data.summary });
       history = history.slice(0, 5);
       localStorage.setItem('tradeHistory', JSON.stringify(history));
+    }
+
+    function drawChart(timeseries, entryPrice) {
+      const labels = timeseries.map(pt => pt.time);
+      const prices = timeseries.map(pt => pt.price);
+
+      if (chart) chart.destroy();
+
+      const ctx = document.getElementById('priceChart').getContext('2d');
+      chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [
+            {
+              label: 'Price',
+              data: prices,
+              borderColor: '#00e676',
+              backgroundColor: 'transparent',
+              tension: 0.3
+            },
+            {
+              label: 'Entry Price',
+              data: Array(prices.length).fill(entryPrice),
+              borderColor: '#ff5252',
+              borderDash: [5, 5],
+              pointRadius: 0,
+              fill: false
+            }
+          ]
+        },
+        options: {
+          scales: {
+            x: {
+              ticks: { color: '#ccc' }
+            },
+            y: {
+              ticks: { color: '#ccc' }
+            }
+          },
+          plugins: {
+            legend: { labels: { color: '#fff' } }
+          }
+        }
+      });
     }
   </script>
 </body>

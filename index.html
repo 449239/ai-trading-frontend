@@ -32,6 +32,12 @@
       font-size: 1rem;
       color: #ccc;
     }
+    .market-info {
+      font-size: 0.9rem;
+      color: #ccc;
+      text-align: center;
+      margin-top: 0.5rem;
+    }
     .trust-badges {
       display: flex;
       justify-content: center;
@@ -108,6 +114,8 @@
       text-align: left;
     }
     th { background: #1b1b1b; color: #00e676; }
+    td.buy { color: #00e676; font-weight: bold; }
+    td.sell { color: #ff5252; font-weight: bold; }
     td { color: #ddd; }
   </style>
 </head>
@@ -118,6 +126,8 @@
       <div class="tagline">Almost Guaranteed Success*</div>
     </div>
   </nav>
+
+  <div class="market-info" id="datetime"></div>
 
   <div class="trust-badges">
     <img src="https://img.icons8.com/fluency/48/checked.png" alt="Trusted by 5K+ Traders">
@@ -172,6 +182,20 @@
 
   <script>
     let chart;
+    function updateDateTime() {
+      const now = new Date();
+      const utcHour = now.getUTCHours();
+      const estHour = (utcHour - 5 + 24) % 24;
+      const openMarkets = [];
+      if (estHour >= 9 && estHour < 16) openMarkets.push("NYSE");
+      if (estHour >= 9 && estHour < 16) openMarkets.push("Nasdaq");
+      if (estHour >= 20 || estHour < 5) openMarkets.push("Futures");
+      const openStr = openMarkets.length ? `Markets Open: ${openMarkets.join(", ")}` : "Markets Currently Closed";
+      document.getElementById("datetime").innerText = `${now.toLocaleString()} · ${openStr}`;
+    }
+    setInterval(updateDateTime, 60000);
+    updateDateTime();
+
     async function getSignal() {
       const ticker = document.getElementById("ticker").value;
       const risk = document.getElementById("risk").value;
@@ -209,7 +233,7 @@
       history.forEach(row => {
         tbody.innerHTML += `<tr>
           <td>${row.date}</td>
-          <td>${row.signal}</td>
+          <td class="${row.signal}">${row.signal.toUpperCase()}</td>
           <td>$${row.entry_price}</td>
           <td>${row.accuracy}</td>
           <td>${row.shares}</td>

@@ -191,9 +191,10 @@
       if (estHour >= 9 && estHour < 16) openMarkets.push("Nasdaq");
       if (estHour >= 20 || estHour < 5) openMarkets.push("Futures");
       const openStr = openMarkets.length ? `Markets Open: ${openMarkets.join(", ")}` : "Markets Currently Closed";
-      document.getElementById("datetime").innerText = `${now.toLocaleString()} · ${openStr}`;
+      const formatted = now.toLocaleDateString() + ' · ' + now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      document.getElementById("datetime").innerText = `${formatted} · ${openStr}`;
     }
-    setInterval(updateDateTime, 60000);
+    setInterval(updateDateTime, 1000);
     updateDateTime();
 
     async function getSignal() {

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Futures Trading Assistant</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f8f8f8; padding: 20px; }
+    .container { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    label, select, input { display: block; width: 100%; margin-bottom: 15px; }
+    button { padding: 10px 20px; background: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer; }
+    .output { margin-top: 20px; }
+    canvas { margin-top: 30px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>📈 AI Futures Trading Assistant</h1>
+    <label for="ticker">Choose Futures Contract:</label>
+    <select id="ticker">
+      <option value="NQ=F">NASDAQ /NQ</option>
+      <option value="ES=F">S&P 500 /ES</option>
+      <option value="YM=F">Dow /YM</option>
+      <option value="CL=F">Crude Oil /CL</option>
+    </select>
+    <label for="balance">Account Balance ($):</label>
+    <input type="number" id="balance" value="10000" />
+    <label for="risk">Risk per Trade (%):</label>
+    <input type="number" id="risk" value="1.5" step="0.1" />
+    <button onclick="generateSignal()">Generate Signal</button>
+    <div class="output" id="output"></div>
+    <canvas id="tradeChart" width="800" height="400"></canvas>
+  </div>
+  <script>
+    async function generateSignal() {
+      const ticker = document.getElementById("ticker").value;
+      const balance = document.getElementById("balance").value;
+      const risk = document.getElementById("risk").value;
+      const res = await fetch(`https://ai-trading-backend.up.railway.app/api/signal?ticker=${ticker}&risk_percent=${risk}&account_balance=${balance}`);
+      const data = await res.json();
+      const output = document.getElementById("output");
+      output.innerHTML = `
+        <h3>Signal: ${data.summary.signal}</h3>
+        <p>Confidence: ${data.summary.confidence * 100}%</p>
+        <p>Entry Price: $${data.summary.entry_price}</p>
+        <p>Position Size: ${data.summary.shares} contracts</p>
+        <p>Estimated Accuracy: ${data.summary.accuracy * 100}%</p>
+      `;
+      const ctx = document.getElementById("tradeChart").getContext("2d");
+      const labels = data.timeseries.map(x => x.time);
+      const prices = data.timeseries.map(x => x.price);
+      new Chart(ctx, {
+        type: "line",
+        data: {
+          labels,
+          datasets: [
+            {
+              label: "Price",
+              data: prices,
+              borderColor: "blue",
+              fill: false,
+            },
+            {
+              label: "Entry",
+              data: Array(prices.length).fill(data.summary.entry_price),
+              borderColor: "green",
+              borderDash: [5, 5],
+              fill: false,
+            }
+          ]
+        },
+        options: {
+          scales: {
+            x: { title: { display: true, text: 'Time' } },
+            y: { title: { display: true, text: 'Price' } }
+          }
+        }
+      });
+    }
+  </script>
+</body>
+</html>

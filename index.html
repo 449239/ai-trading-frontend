@@ -30,9 +30,25 @@
       background: #222;
       padding: 1rem;
       margin-top: 1rem;
+      border-radius: 12px;
     }
+    table {
+      margin-top: 1rem;
+      width: 100%;
+      max-width: 600px;
+      border-collapse: collapse;
+      background: #1e1e1e;
+    }
+    th, td {
+      padding: 0.5rem;
+      border-bottom: 1px solid #333;
+      text-align: left;
+    }
+    th { color: #00e676; }
+    td { color: #ccc; }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.0"></script>
 </head>
 <body>
   <h1>📈 AI Trading Assistant</h1>
@@ -63,6 +79,14 @@
   <pre id="response-box"></pre>
   <canvas id="priceChart" width="600" height="300"></canvas>
 
+  <h3>Recent Trades</h3>
+  <table id="historyTable">
+    <thead>
+      <tr><th>Time</th><th>Signal</th><th>Entry</th><th>Accuracy</th><th>Shares</th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
   <script>
     let chart;
 
@@ -87,6 +111,7 @@
         document.getElementById("response-box").innerText = JSON.stringify(data, null, 2);
         saveHistory(data);
         drawChart(data.timeseries, data.summary.entry_price);
+        renderHistory();
       } else {
         document.getElementById("signal-result").innerText = "Error: " + (data.error || "Invalid response");
       }
@@ -97,6 +122,21 @@
       history.unshift({ date: new Date().toLocaleString(), ...data.summary });
       history = history.slice(0, 5);
       localStorage.setItem('tradeHistory', JSON.stringify(history));
+    }
+
+    function renderHistory() {
+      const tbody = document.querySelector('#historyTable tbody');
+      tbody.innerHTML = '';
+      const history = JSON.parse(localStorage.getItem('tradeHistory')) || [];
+      history.forEach(row => {
+        tbody.innerHTML += `<tr>
+          <td>${row.date}</td>
+          <td>${row.signal}</td>
+          <td>$${row.entry_price}</td>
+          <td>${row.accuracy}</td>
+          <td>${row.shares}</td>
+        </tr>`;
+      });
     }
 
     function drawChart(timeseries, entryPrice) {
@@ -115,7 +155,7 @@
               label: 'Price',
               data: prices,
               borderColor: '#00e676',
-              backgroundColor: 'transparent',
+              backgroundColor: 'rgba(0, 230, 118, 0.1)',
               tension: 0.3
             },
             {
@@ -125,24 +165,42 @@
               borderDash: [5, 5],
               pointRadius: 0,
               fill: false
+            },
+            {
+              label: 'TP (2%)',
+              data: Array(prices.length).fill((entryPrice * 1.02).toFixed(2)),
+              borderColor: '#29b6f6',
+              borderDash: [3, 3],
+              pointRadius: 0
+            },
+            {
+              label: 'SL (1%)',
+              data: Array(prices.length).fill((entryPrice * 0.99).toFixed(2)),
+              borderColor: '#ffa726',
+              borderDash: [3, 3],
+              pointRadius: 0
             }
           ]
         },
         options: {
-          scales: {
-            x: {
-              ticks: { color: '#ccc' }
-            },
-            y: {
-              ticks: { color: '#ccc' }
+          responsive: true,
+          plugins: {
+            legend: { labels: { color: '#fff' } },
+            tooltip: { enabled: true },
+            zoom: {
+              pan: { enabled: true, mode: 'xy' },
+              zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'xy' }
             }
           },
-          plugins: {
-            legend: { labels: { color: '#fff' } }
+          scales: {
+            x: { ticks: { color: '#ccc' } },
+            y: { ticks: { color: '#ccc' } }
           }
         }
       });
     }
+
+    renderHistory();
   </script>
 </body>
 </html>

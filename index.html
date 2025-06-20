@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Mal's Trading Bot - AI Assistant</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.0"></script>
   <style>
     * { box-sizing: border-box; }
     body {
@@ -44,12 +46,6 @@
       text-align: center;
       font-style: italic;
       margin-bottom: 1.5rem;
-      animation: fadein 8s infinite;
-    }
-    @keyframes fadein {
-      0%, 100% { opacity: 1; }
-      33% { opacity: 0.8; }
-      66% { opacity: 0.6; }
     }
     .video-container {
       display: flex;
@@ -61,18 +57,6 @@
       height: 315px;
       border: none;
       border-radius: 8px;
-    }
-    .email-capture {
-      text-align: center;
-      margin: 2rem auto;
-    }
-    .email-capture input {
-      padding: 0.5rem;
-      width: 250px;
-      margin-right: 0.5rem;
-    }
-    .email-capture button {
-      padding: 0.5rem 1rem;
     }
     .container {
       max-width: 960px;
@@ -104,13 +88,27 @@
       color: #fff;
       cursor: pointer;
     }
-    .toggle-theme {
-      background: #424242;
-      border: none;
-      color: white;
-      padding: 0.5rem 1rem;
-      border-radius: 8px;
+    canvas {
+      background: #222;
+      padding: 1rem;
+      margin-top: 2rem;
+      border-radius: 12px;
     }
+    table {
+      margin-top: 2rem;
+      width: 100%;
+      border-collapse: collapse;
+      background: #121212;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    th, td {
+      padding: 0.75rem;
+      border-bottom: 1px solid #333;
+      text-align: left;
+    }
+    th { background: #1b1b1b; color: #00e676; }
+    td { color: #ddd; }
   </style>
 </head>
 <body>
@@ -119,7 +117,6 @@
       <h1>Mal's Trading Bot</h1>
       <div class="tagline">Almost Guaranteed Success*</div>
     </div>
-    <button class="toggle-theme" onclick="toggleTheme()">Toggle Theme</button>
   </nav>
 
   <div class="trust-badges">
@@ -138,35 +135,149 @@
     <iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ" title="Walkthrough Demo" allowfullscreen></iframe>
   </div>
 
-  <div class="email-capture">
-    <h2>Join the List – Get Weekly Trade Alerts</h2>
-    <input type="email" id="email" placeholder="Your email address">
-    <button onclick="subscribeEmail()">Subscribe</button>
-    <div id="email-status"></div>
-  </div>
-
   <div class="container">
-    <!-- Trading Bot Interface will be inserted here -->
+    <label>Choose Future Symbol:
+      <select id="ticker">
+        <option value="ES=F">S&P 500 (ES=F)</option>
+        <option value="NQ=F">Nasdaq-100 (NQ=F)</option>
+        <option value="YM=F">Dow Jones (YM=F)</option>
+        <option value="CL=F">Crude Oil (CL=F)</option>
+        <option value="GC=F">Gold (GC=F)</option>
+        <option value="MNQ=F">Micro Nasdaq (MNQ=F)</option>
+        <option value="MES=F">Micro S&P (MES=F)</option>
+      </select>
+    </label>
+
+    <label>Risk Percentage:
+      <input type="number" id="risk" value="1.5" />
+    </label>
+
+    <label>Account Balance:
+      <input type="number" id="balance" value="10000" />
+    </label>
+
+    <button onclick="getSignal()">Generate Trade Signal</button>
+
+    <h2 id="signal-result"></h2>
+    <canvas id="priceChart" width="600" height="300"></canvas>
+
+    <h3>Recent Trade History</h3>
+    <table id="historyTable">
+      <thead>
+        <tr><th>Time</th><th>Signal</th><th>Entry</th><th>Accuracy</th><th>Shares</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
   </div>
 
   <script>
-    function toggleTheme() {
-      const html = document.documentElement;
-      const theme = html.getAttribute('data-theme');
-      html.setAttribute('data-theme', theme === 'light' ? 'dark' : 'light');
-    }
+    let chart;
+    async function getSignal() {
+      const ticker = document.getElementById("ticker").value;
+      const risk = document.getElementById("risk").value;
+      const balance = document.getElementById("balance").value;
 
-    function subscribeEmail() {
-      const email = document.getElementById("email").value;
-      const status = document.getElementById("email-status");
-      if (!email || !email.includes("@")) {
-        status.textContent = "Please enter a valid email address.";
-        status.style.color = "red";
+      const res = await fetch(`https://ai-trading-backend-production-f5e6.up.railway.app/api/signal?ticker=${ticker}&risk_percent=${risk}&account_balance=${balance}`);
+      const data = await res.json();
+
+      if (data.summary) {
+        const signal = data.summary.signal.toLowerCase();
+        document.getElementById("signal-result").innerHTML = 
+          `Signal: <span class="${signal}">${signal.toUpperCase()}</span> @ $${data.summary.entry_price}<br/>
+           Confidence: ${data.summary.confidence} | Accuracy: ${data.summary.accuracy}<br/>
+           Shares: ${data.summary.shares}`;
+
+        saveHistory(data);
+        drawChart(data.timeseries, data.summary.entry_price);
+        renderHistory();
       } else {
-        status.textContent = "Subscribed successfully!";
-        status.style.color = "green";
+        document.getElementById("signal-result").innerText = "Error: " + (data.error || "Invalid response");
       }
     }
+
+    function saveHistory(data) {
+      let history = JSON.parse(localStorage.getItem('tradeHistory')) || [];
+      history.unshift({ date: new Date().toLocaleString(), ...data.summary });
+      history = history.slice(0, 5);
+      localStorage.setItem('tradeHistory', JSON.stringify(history));
+    }
+
+    function renderHistory() {
+      const tbody = document.querySelector('#historyTable tbody');
+      tbody.innerHTML = '';
+      const history = JSON.parse(localStorage.getItem('tradeHistory')) || [];
+      history.forEach(row => {
+        tbody.innerHTML += `<tr>
+          <td>${row.date}</td>
+          <td>${row.signal}</td>
+          <td>$${row.entry_price}</td>
+          <td>${row.accuracy}</td>
+          <td>${row.shares}</td>
+        </tr>`;
+      });
+    }
+
+    function drawChart(timeseries, entryPrice) {
+      const labels = timeseries.map(pt => pt.time);
+      const prices = timeseries.map(pt => pt.price);
+      if (chart) chart.destroy();
+      const ctx = document.getElementById('priceChart').getContext('2d');
+      chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [
+            {
+              label: 'Price',
+              data: prices,
+              borderColor: '#00e676',
+              backgroundColor: 'rgba(0, 230, 118, 0.05)',
+              tension: 0.3,
+              fill: true
+            },
+            {
+              label: 'Entry Price',
+              data: Array(prices.length).fill(entryPrice),
+              borderColor: '#ff5252',
+              borderDash: [5, 5],
+              pointRadius: 0,
+              fill: false
+            },
+            {
+              label: 'TP (2%)',
+              data: Array(prices.length).fill((entryPrice * 1.02).toFixed(2)),
+              borderColor: '#29b6f6',
+              borderDash: [3, 3],
+              pointRadius: 0
+            },
+            {
+              label: 'SL (1%)',
+              data: Array(prices.length).fill((entryPrice * 0.99).toFixed(2)),
+              borderColor: '#ffa726',
+              borderDash: [3, 3],
+              pointRadius: 0
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { labels: { color: '#fff' } },
+            tooltip: { enabled: true },
+            zoom: {
+              pan: { enabled: true, mode: 'xy' },
+              zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'xy' }
+            }
+          },
+          scales: {
+            x: { ticks: { color: '#ccc' } },
+            y: { ticks: { color: '#ccc' } }
+          }
+        }
+      });
+    }
+
+    renderHistory();
   </script>
 </body>
 </html>

@@ -5,16 +5,42 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>AI Trading Assistant</title>
   <style>
-    body { font-family: sans-serif; padding: 2rem; }
-    input, button { margin: 0.5rem 0; padding: 0.5rem; width: 100%; max-width: 300px; }
-    pre { background: #f4f4f4; padding: 1rem; overflow-x: auto; }
+    body { font-family: sans-serif; padding: 2rem; background: #111; color: #fff; }
+    input, select, button {
+      margin: 0.5rem 0;
+      padding: 0.5rem;
+      width: 100%;
+      max-width: 300px;
+      border-radius: 6px;
+      border: none;
+      font-size: 1rem;
+    }
+    button { background: #00c853; color: #fff; cursor: pointer; }
+    button:hover { background: #00b248; }
+    .buy { color: #00e676; font-weight: bold; }
+    .sell { color: #ff5252; font-weight: bold; }
+    pre {
+      background: #222;
+      padding: 1rem;
+      overflow-x: auto;
+      color: #cfd8dc;
+      max-width: 100%;
+    }
   </style>
 </head>
 <body>
   <h1>📈 AI Trading Assistant</h1>
 
-  <label>Ticker:<br/>
-    <input type="text" id="ticker" value="ES=F" />
+  <label>Futures Ticker:<br/>
+    <select id="ticker">
+      <option value="ES=F">S&P 500 (ES=F)</option>
+      <option value="NQ=F">Nasdaq-100 (NQ=F)</option>
+      <option value="YM=F">Dow Jones (YM=F)</option>
+      <option value="CL=F">Crude Oil (CL=F)</option>
+      <option value="GC=F">Gold (GC=F)</option>
+      <option value="MNQ=F">Micro Nasdaq (MNQ=F)</option>
+      <option value="MES=F">Micro S&P (MES=F)</option>
+    </select>
   </label><br/>
 
   <label>Risk %:<br/>
@@ -43,12 +69,23 @@
       const data = await res.json();
 
       if (data.summary) {
-        document.getElementById("signal-result").innerText = 
-          `Signal: ${data.summary.signal.toUpperCase()} @ $${data.summary.entry_price}`;
+        const signal = data.summary.signal.toLowerCase();
+        document.getElementById("signal-result").innerHTML = 
+          `Signal: <span class="${signal}">${signal.toUpperCase()}</span> @ $${data.summary.entry_price}<br/>
+           Confidence: ${data.summary.confidence} | Accuracy: ${data.summary.accuracy}<br/>
+           Shares: ${data.summary.shares}`;
         document.getElementById("response-box").innerText = JSON.stringify(data, null, 2);
+        saveHistory(data);
       } else {
         document.getElementById("signal-result").innerText = "Error: " + (data.error || "Invalid response");
       }
+    }
+
+    function saveHistory(data) {
+      let history = JSON.parse(localStorage.getItem('tradeHistory')) || [];
+      history.unshift({ date: new Date().toLocaleString(), ...data.summary });
+      history = history.slice(0, 5);
+      localStorage.setItem('tradeHistory', JSON.stringify(history));
     }
   </script>
 </body>

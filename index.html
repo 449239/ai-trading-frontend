@@ -3,161 +3,117 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Mal's AI Trading Bot</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-  <style>
-    body {
-      font-family: 'Inter', sans-serif;
-      background-color: #0e1117;
-      color: #ffffff;
-      margin: 0;
-      padding: 0;
-    }
-    nav {
-      background: #1e1e1e;
-      padding: 1rem 2rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid #333;
-    }
-    nav h1 {
-      color: #00e676;
-      font-size: 1.5rem;
-    }
-    .container {
-      max-width: 960px;
-      margin: 2rem auto;
-      background-color: #1e1e1e;
-      padding: 2rem;
-      border-radius: 12px;
-      box-shadow: 0 0 20px rgba(0, 230, 118, 0.2);
-    }
-    label {
-      display: block;
-      margin-top: 1rem;
-      font-weight: 600;
-    }
-    input, select, button {
-      margin-top: 0.5rem;
-      padding: 0.5rem;
-      width: 100%;
-      border-radius: 6px;
-      border: none;
-      font-size: 1rem;
-    }
-    select, input {
-      background-color: #121212;
-      color: #ffffff;
-    }
-    button {
-      background: #00c853;
-      color: #fff;
-      cursor: pointer;
-      margin-top: 1.5rem;
-    }
-    #chartHTML {
-      margin-top: 2rem;
-    }
-    .section {
-      margin-top: 2rem;
-      background: #222;
-      padding: 1rem;
-      border-radius: 8px;
-    }
-  </style>
+  <title>Mal's Trading Bot</title>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-  <nav>
-    <div>
-      <h1>Mal's Trading Bot</h1>
+<body class="bg-gray-900 text-white font-sans">
+  <nav class="bg-gray-800 p-4 shadow-md">
+    <div class="max-w-7xl mx-auto flex justify-between items-center">
+      <h1 class="text-green-400 text-2xl font-bold">Mal's Trading Bot</h1>
     </div>
   </nav>
 
-  <div class="container">
-    <label for="ticker">Select Market:</label>
-    <select id="ticker">
-      <option value="AAPL">Apple</option>
-      <option value="NQ=F">Nasdaq Futures</option>
-      <option value="ES=F">S&P 500 Futures</option>
-      <option value="CL=F">Crude Oil Futures</option>
-      <option value="GC=F">Gold Futures</option>
-      <option value="BTC-USD">Bitcoin</option>
-      <option value="ETH-USD">Ethereum</option>
-      <option value="USDEUR=X">USD/EUR Forex</option>
-      <option value="USDJPY=X">USD/JPY Forex</option>
-      <option value="GBPUSD=X">GBP/USD Forex</option>
-    </select>
+  <main class="max-w-5xl mx-auto p-6">
+    <div class="grid gap-4 bg-gray-800 p-6 rounded-xl shadow-lg">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <label class="block">
+          <span class="text-gray-300">Select Market:</span>
+          <select id="ticker" class="mt-1 w-full bg-gray-700 p-2 rounded">
+            <option value="AAPL">Apple</option>
+            <option value="NQ=F">Nasdaq Futures</option>
+            <option value="ES=F">S&P 500 Futures</option>
+            <option value="CL=F">Crude Oil Futures</option>
+            <option value="GC=F">Gold Futures</option>
+            <option value="BTC-USD">Bitcoin</option>
+            <option value="ETH-USD">Ethereum</option>
+          </select>
+        </label>
 
-    <label for="strategy">Select Strategy:</label>
-    <select id="strategy">
-      <option value="Scalping">Scalping</option>
-      <option value="Swing Trading">Swing Trading</option>
-      <option value="Breakout">Breakout</option>
-    </select>
+        <label class="block">
+          <span class="text-gray-300">Select Strategy:</span>
+          <select id="strategy" class="mt-1 w-full bg-gray-700 p-2 rounded">
+            <option value="Scalping">Scalping</option>
+            <option value="Swing Trading">Swing Trading</option>
+            <option value="Breakout">Breakout</option>
+          </select>
+        </label>
 
-    <label for="indicators">Indicators:</label>
-    <select id="indicators" multiple>
-      <option value="rsi">RSI</option>
-      <option value="macd">MACD</option>
-      <option value="ema">EMA</option>
-      <option value="bollinger">Bollinger Bands</option>
-    </select>
+        <label class="block">
+          <span class="text-gray-300">Chart Style:</span>
+          <select id="chartStyle" class="mt-1 w-full bg-gray-700 p-2 rounded">
+            <option value="candlestick">Candlestick</option>
+            <option value="ohlc">OHLC</option>
+            <option value="line">Line</option>
+          </select>
+        </label>
 
-    <label for="theme">Chart Theme:</label>
-    <select id="theme">
-      <option value="dark">Dark</option>
-      <option value="light">Light</option>
-    </select>
+        <div class="flex flex-wrap gap-4 items-center pt-2">
+          <label class="flex items-center space-x-2">
+            <input type="checkbox" id="auto_refresh" class="form-checkbox" checked>
+            <span>Auto Refresh</span>
+          </label>
+          <label class="flex items-center space-x-2">
+            <input type="checkbox" id="show_volume" class="form-checkbox" checked>
+            <span>Show Volume</span>
+          </label>
+        </div>
+      </div>
 
-    <label><input type="checkbox" id="draw_tools"> Enable Drawing Tools</label>
-    <label><input type="checkbox" id="auto_refresh" checked> Auto Refresh (every 60s)</label>
+      <button onclick="playClick(); generateSignal()" class="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded mt-4 w-full font-semibold">Generate Trade Signal</button>
 
-    <button onclick="playClick(); generateSignal();">Generate Trade Signal</button>
+      <div id="signal" class="bg-gray-700 p-4 rounded mt-4"></div>
 
-    <div id="signal" class="section"></div>
-    <div id="chartHTML"></div>
-  </div>
+      <div id="chartWrapper" class="mt-6 bg-gray-800 border border-gray-700 rounded-xl overflow-hidden shadow-lg">
+        <div class="p-4 text-sm text-gray-400">Live Chart:</div>
+        <div id="chartHTML" class="p-2"></div>
+      </div>
+    </div>
+  </main>
 
   <audio id="clickSound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_b5e348f1e0.mp3"></audio>
-  <audio id="confirmSound" src="https://cdn.pixabay.com/download/audio/2022/01/20/audio_f79f420d0e.mp3"></audio>
+  <audio id="buySound" src="https://cdn.pixabay.com/download/audio/2023/03/10/audio_cb26d8c0fc.mp3"></audio>
+  <audio id="sellSound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_291d1b51f4.mp3"></audio>
+  <audio id="neutralSound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_9d7682e3b8.mp3"></audio>
 
   <script>
     function playClick() {
       document.getElementById('clickSound').play();
     }
-    function playConfirm() {
-      document.getElementById('confirmSound').play();
+
+    function playSignalSound(type) {
+      if (type === 'BUY') document.getElementById('buySound').play();
+      else if (type === 'SELL') document.getElementById('sellSound').play();
+      else document.getElementById('neutralSound').play();
     }
 
     async function generateSignal() {
       const ticker = document.getElementById('ticker').value;
       const strategy = document.getElementById('strategy').value;
-      const indicators = Array.from(document.getElementById('indicators').selectedOptions).map(o => o.value);
-      const theme = document.getElementById('theme').value;
-      const draw = document.getElementById('draw_tools').checked;
+      const autoRefresh = document.getElementById('auto_refresh').checked;
+      const showVolume = document.getElementById('show_volume').checked;
+      const chartStyle = document.getElementById('chartStyle').value;
 
       const signalRes = await fetch(`https://ai-trading-backend-production-f5e6.up.railway.app/api/signal?ticker=${ticker}&strategy=${strategy}`);
       const signalData = await signalRes.json();
 
       if (signalData.signal) {
+        playSignalSound(signalData.signal);
         document.getElementById("signal").innerHTML = `
-          <b>Signal:</b> ${signalData.signal} <br>
-          <b>Confidence:</b> ${signalData.confidence}% <br>
-          <b>Entry:</b> $${signalData.entry} <br>
-          <b>Stop:</b> $${signalData.stop} <br>
-          <b>Take Profit:</b> $${signalData.take} <br>
-          <b>Support:</b> $${signalData.support} <br>
-          <b>Resistance:</b> $${signalData.resistance} <br>
-          <b>Reason:</b> ${signalData.reason} <br>
-          <b>Time:</b> ${signalData.timestamp} <br>
+          <div class='text-lg font-semibold mb-2'>${signalData.signal === 'BUY' ? '🟢 BUY Signal' : signalData.signal === 'SELL' ? '🔴 SELL Signal' : '⚪ HOLD'}</div>
+          <div><strong>Confidence:</strong> ${signalData.confidence}%</div>
+          <div><strong>Entry:</strong> $${signalData.entry}</div>
+          <div><strong>Stop Loss:</strong> $${signalData.stop}</div>
+          <div><strong>Take Profit:</strong> $${signalData.take}</div>
+          <div><strong>Support:</strong> $${signalData.support}</div>
+          <div><strong>Resistance:</strong> $${signalData.resistance}</div>
+          <div><strong>Reason:</strong> ${signalData.reason}</div>
+          <div><strong>Time:</strong> ${signalData.timestamp}</div>
         `;
-        playConfirm();
       } else {
-        document.getElementById("signal").innerText = "Error fetching signal.";
+        document.getElementById("signal").innerText = "No signal returned.";
       }
 
-      const chartRes = await fetch(`https://ai-trading-backend-production-f5e6.up.railway.app/api/chart?ticker=${ticker}&theme=${theme}&draw=${draw}&indicators=${indicators.join(',')}`);
+      const chartRes = await fetch(`https://ai-trading-backend-production-f5e6.up.railway.app/api/chart?ticker=${ticker}&theme=dark&showVolume=${showVolume}&candleStyle=${chartStyle}`);
       const chartHTML = await chartRes.text();
       document.getElementById("chartHTML").innerHTML = chartHTML;
     }

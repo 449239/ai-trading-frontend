@@ -2,13 +2,10 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Mal's Trading Bot - AI Assistant</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.0"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mal's AI Trading Bot</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
   <style>
-    * { box-sizing: border-box; }
     body {
       font-family: 'Inter', sans-serif;
       background-color: #0e1117;
@@ -32,277 +29,158 @@
       font-size: 1rem;
       color: #ccc;
     }
-    .market-info {
-      font-size: 0.9rem;
-      color: #ccc;
-      text-align: center;
-      margin-top: 0.5rem;
-    }
-    .trust-badges {
-      display: flex;
-      justify-content: center;
-      gap: 2rem;
-      margin: 1.5rem 0;
-    }
-    .trust-badges img {
-      width: 48px;
-      height: 48px;
-    }
-    .testimonial-carousel {
-      text-align: center;
-      font-style: italic;
-      margin-bottom: 1.5rem;
-    }
-    .video-container {
-      display: flex;
-      justify-content: center;
-      margin: 2rem 0;
-    }
-    .video-container iframe {
-      width: 560px;
-      height: 315px;
-      border: none;
-      border-radius: 8px;
-    }
     .container {
-      max-width: 960px;
+      max-width: 1000px;
       margin: 2rem auto;
-      background-color: #1e1e1e;
       padding: 2rem;
+      background-color: #1c1c1c;
       border-radius: 12px;
-      box-shadow: 0 0 20px rgba(0, 230, 118, 0.2);
+      box-shadow: 0 0 20px rgba(0, 230, 118, 0.1);
     }
     label {
       display: block;
       margin-top: 1rem;
-      font-weight: 600;
+      font-weight: bold;
     }
     input, select, button {
       margin-top: 0.5rem;
-      padding: 0.5rem;
+      padding: 0.6rem;
+      font-size: 1rem;
       width: 100%;
       border-radius: 6px;
       border: none;
-      font-size: 1rem;
     }
-    select, input {
+    input, select {
       background-color: #121212;
-      color: #ffffff;
+      color: #fff;
     }
     button {
       background: #00c853;
       color: #fff;
+      margin-top: 1.5rem;
       cursor: pointer;
     }
-    canvas {
-      background: #222;
+    .grid {
+      display: grid;
+      gap: 1rem;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      margin-top: 2rem;
+    }
+    .section {
+      margin-top: 2rem;
       padding: 1rem;
+      background-color: #222;
+      border-radius: 8px;
+    }
+    .section h3 {
+      margin-bottom: 0.5rem;
+      color: #00e676;
+    }
+    .checkbox {
+      transform: scale(1.1);
+    }
+    #chartHTML {
       margin-top: 2rem;
-      border-radius: 12px;
     }
-    table {
-      margin-top: 2rem;
-      width: 100%;
-      border-collapse: collapse;
-      background: #121212;
-      border-radius: 12px;
-      overflow: hidden;
-    }
-    th, td {
-      padding: 0.75rem;
-      border-bottom: 1px solid #333;
-      text-align: left;
-    }
-    th { background: #1b1b1b; color: #00e676; }
-    td.buy { color: #00e676; font-weight: bold; }
-    td.sell { color: #ff5252; font-weight: bold; }
-    td { color: #ddd; }
   </style>
 </head>
 <body>
   <nav>
     <div>
       <h1>Mal's Trading Bot</h1>
-      <div class="tagline">Almost Guaranteed Success*</div>
+      <div class="tagline">AI-Powered Signals • Real-Time Insights</div>
     </div>
   </nav>
 
-  <div class="market-info" id="datetime"></div>
-
-  <div class="trust-badges">
-    <img src="https://img.icons8.com/fluency/48/checked.png" alt="Trusted by 5K+ Traders">
-    <img src="https://img.icons8.com/color/48/artificial-intelligence.png" alt="AI Powered">
-    <img src="https://img.icons8.com/ios-filled/48/star--v1.png" alt="Top Rated">
-  </div>
-
-  <div class="testimonial-carousel">
-    "This bot changed the way I trade — I’ve never been more confident entering the market."<br/>
-    "Clean UI, accurate entries, and great results. I made 12% my first week!"<br/>
-    "Almost scary how good it is. Wish I found this sooner."
-  </div>
-
-  <div class="video-container">
-    <iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ" title="Walkthrough Demo" allowfullscreen></iframe>
-  </div>
-
   <div class="container">
-    <label>Choose Future Symbol:
-      <select id="ticker">
-        <option value="ES=F">S&P 500 (ES=F)</option>
-        <option value="NQ=F">Nasdaq-100 (NQ=F)</option>
-        <option value="YM=F">Dow Jones (YM=F)</option>
-        <option value="CL=F">Crude Oil (CL=F)</option>
-        <option value="GC=F">Gold (GC=F)</option>
-        <option value="MNQ=F">Micro Nasdaq (MNQ=F)</option>
-        <option value="MES=F">Micro S&P (MES=F)</option>
+    <label>Ticker Symbol:
+      <input type="text" id="ticker" value="AAPL" />
+    </label>
+
+    <label>Choose Strategy:
+      <select id="strategy">
+        <option value="Scalping">Scalping</option>
+        <option value="Swing Trading">Swing Trading</option>
+        <option value="Breakout">Breakout</option>
       </select>
     </label>
 
-    <label>Risk Percentage:
-      <input type="number" id="risk" value="1.5" />
-    </label>
+    <div class="section">
+      <h3>Trade Preferences</h3>
+      <div class="grid">
+        <label>Show Hidden Valley Gaps <input type="checkbox" id="show_hidden_valley" class="checkbox" checked></label>
+        <label>Show Stop Loss <input type="checkbox" id="show_stop_loss" class="checkbox" checked></label>
+        <label>Show Take Profit <input type="checkbox" id="show_take_profit" class="checkbox" checked></label>
+        <label>Show Short Positions <input type="checkbox" id="show_short_positions" class="checkbox" checked></label>
+        <label>Interactive Chart <input type="checkbox" id="interactive_chart" class="checkbox" checked></label>
+      </div>
+    </div>
 
-    <label>Account Balance:
-      <input type="number" id="balance" value="10000" />
-    </label>
+    <div class="section">
+      <h3>Chart Settings</h3>
+      <div class="grid">
+        <label>Theme:
+          <select id="chart_theme">
+            <option value="light">Light</option>
+            <option value="dark" selected>Dark</option>
+          </select>
+        </label>
+        <label>Candle Style:
+          <select id="candle_style">
+            <option value="standard">Standard</option>
+            <option value="hollow">Hollow Candles</option>
+            <option value="heikin">Heikin-Ashi</option>
+          </select>
+        </label>
+        <label>Show Volume <input type="checkbox" id="show_volume" class="checkbox"></label>
+      </div>
+    </div>
 
-    <button onclick="getSignal()">Generate Trade Signal</button>
+    <button onclick="generateSignal()">Generate Trade Signal</button>
 
-    <h2 id="signal-result"></h2>
-    <canvas id="priceChart" width="600" height="300"></canvas>
-
-    <h3>Recent Trade History</h3>
-    <table id="historyTable">
-      <thead>
-        <tr><th>Time</th><th>Signal</th><th>Entry</th><th>Accuracy</th><th>Shares</th></tr>
-      </thead>
-      <tbody></tbody>
-    </table>
+    <div id="signal" class="section"></div>
+    <div id="chartHTML"></div>
   </div>
 
   <script>
-    let chart;
-    function updateDateTime() {
-      const now = new Date();
-      const utcHour = now.getUTCHours();
-      const estHour = (utcHour - 5 + 24) % 24;
-      const openMarkets = [];
-      if (estHour >= 9 && estHour < 16) openMarkets.push("NYSE");
-      if (estHour >= 9 && estHour < 16) openMarkets.push("Nasdaq");
-      if (estHour >= 20 || estHour < 5) openMarkets.push("Futures");
-      const openStr = openMarkets.length ? `Markets Open: ${openMarkets.join(", ")}` : "Markets Currently Closed";
-      const formatted = now.toLocaleDateString() + ' · ' + now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-      document.getElementById("datetime").innerText = `${formatted} · ${openStr}`;
-    }
-    setInterval(updateDateTime, 1000);
-    updateDateTime();
+    async function generateSignal() {
+      const ticker = document.getElementById('ticker').value;
+      const strategy = document.getElementById('strategy').value;
+      const theme = document.getElementById('chart_theme').value;
+      const candleStyle = document.getElementById('candle_style').value;
+      const showVolume = document.getElementById('show_volume').checked;
 
-    async function getSignal() {
-      const ticker = document.getElementById("ticker").value;
-      const risk = document.getElementById("risk").value;
-      const balance = document.getElementById("balance").value;
-
-      const res = await fetch(`https://ai-trading-backend-production-f5e6.up.railway.app/api/signal?ticker=${ticker}&risk_percent=${risk}&account_balance=${balance}`);
-      const data = await res.json();
-
-      if (data.summary) {
-        const signal = data.summary.signal.toLowerCase();
-        document.getElementById("signal-result").innerHTML = 
-          `Signal: <span class="${signal}">${signal.toUpperCase()}</span> @ $${data.summary.entry_price}<br/>
-           Confidence: ${data.summary.confidence} | Accuracy: ${data.summary.accuracy}<br/>
-           Shares: ${data.summary.shares}`;
-
-        saveHistory(data);
-        drawChart(data.timeseries, data.summary.entry_price);
-        renderHistory();
-      } else {
-        document.getElementById("signal-result").innerText = "Error: " + (data.error || "Invalid response");
+      const preferences = [
+        'show_hidden_valley', 'show_stop_loss', 'show_take_profit', 'show_short_positions', 'interactive_chart'
+      ];
+      for (const key of preferences) {
+        const val = document.getElementById(key).checked;
+        await fetch(`/api/set-preference?key=${key}&value=${val}`);
       }
-    }
 
-    function saveHistory(data) {
-      let history = JSON.parse(localStorage.getItem('tradeHistory')) || [];
-      history.unshift({ date: new Date().toLocaleString(), ...data.summary });
-      history = history.slice(0, 5);
-      localStorage.setItem('tradeHistory', JSON.stringify(history));
-    }
+      const res = await fetch(`/api/signal?ticker=${ticker}&strategy=${strategy}`);
+      const data = await res.json();
+      if (data.signal) {
+        document.getElementById('signal').innerHTML = `
+          <strong>Signal:</strong> ${data.signal}<br/>
+          <strong>Confidence:</strong> ${data.confidence}%<br/>
+          <strong>Sentiment:</strong> ${data.sentiment}<br/>
+          <strong>Entry:</strong> $${data.entry}<br/>
+          <strong>Stop:</strong> $${data.stop}<br/>
+          <strong>Take Profit:</strong> $${data.take}<br/>
+          <strong>Support:</strong> $${data.support}<br/>
+          <strong>Resistance:</strong> $${data.resistance}<br/>
+          <strong>Reason:</strong> ${data.reason}<br/>
+          <strong>Time:</strong> ${data.timestamp}<br/>
+        `;
+      } else {
+        document.getElementById('signal').innerText = 'Error fetching signal.';
+      }
 
-    function renderHistory() {
-      const tbody = document.querySelector('#historyTable tbody');
-      tbody.innerHTML = '';
-      const history = JSON.parse(localStorage.getItem('tradeHistory')) || [];
-      history.forEach(row => {
-        tbody.innerHTML += `<tr>
-          <td>${row.date}</td>
-          <td class="${row.signal}">${row.signal.toUpperCase()}</td>
-          <td>$${row.entry_price}</td>
-          <td>${row.accuracy}</td>
-          <td>${row.shares}</td>
-        </tr>`;
-      });
+      const chart = await fetch(`/api/chart?ticker=${ticker}&theme=${theme}&showVolume=${showVolume}&candleStyle=${candleStyle}`);
+      const html = await chart.text();
+      document.getElementById('chartHTML').innerHTML = html;
     }
-
-    function drawChart(timeseries, entryPrice) {
-      const labels = timeseries.map(pt => pt.time);
-      const prices = timeseries.map(pt => pt.price);
-      if (chart) chart.destroy();
-      const ctx = document.getElementById('priceChart').getContext('2d');
-      chart = new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels,
-          datasets: [
-            {
-              label: 'Price',
-              data: prices,
-              borderColor: '#00e676',
-              backgroundColor: 'rgba(0, 230, 118, 0.05)',
-              tension: 0.3,
-              fill: true
-            },
-            {
-              label: 'Entry Price',
-              data: Array(prices.length).fill(entryPrice),
-              borderColor: '#ff5252',
-              borderDash: [5, 5],
-              pointRadius: 0,
-              fill: false
-            },
-            {
-              label: 'TP (2%)',
-              data: Array(prices.length).fill((entryPrice * 1.02).toFixed(2)),
-              borderColor: '#29b6f6',
-              borderDash: [3, 3],
-              pointRadius: 0
-            },
-            {
-              label: 'SL (1%)',
-              data: Array(prices.length).fill((entryPrice * 0.99).toFixed(2)),
-              borderColor: '#ffa726',
-              borderDash: [3, 3],
-              pointRadius: 0
-            }
-          ]
-        },
-        options: {
-          responsive: true,
-          plugins: {
-            legend: { labels: { color: '#fff' } },
-            tooltip: { enabled: true },
-            zoom: {
-              pan: { enabled: true, mode: 'xy' },
-              zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'xy' }
-            }
-          },
-          scales: {
-            x: { ticks: { color: '#ccc' } },
-            y: { ticks: { color: '#ccc' } }
-          }
-        }
-      });
-    }
-
-    renderHistory();
   </script>
 </body>
 </html>
